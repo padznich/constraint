@@ -99,13 +99,19 @@ problem.addVariable("r_4",
 problem.addVariable("r_5",
                     [{'sq': i['sq'], 'a': i['a'], 'b': i['b'], 'adjacent': ['r_4']} for i in rd_5])
 
-# problem.addConstraint(lambda r_0, r_1, r_2, r_3, r_4:
-#                       9 < sum([r_0['a'], r_1['a'], r_2['a'], r_3['a'], r_4['a']]) < 10,
-#                       ['r_0', 'r_1', 'r_2', 'r_3', 'r_4'])
-
 problem.addConstraint(lambda r_0, r_1, r_2, r_3, r_4, r_5:
                       30 < sum([r_0['sq'], r_1['sq'], r_2['sq'], r_3['sq'], r_4['sq'], r_5['sq']]) < 40,
                       ['r_0', 'r_1', 'r_2', 'r_3', 'r_4', 'r_5'])
+problem.addConstraint(lambda r_0, r_1:
+                      r_0['a'] - 0.3 == r_1['a'],
+                      ['r_0', 'r_1'])
+problem.addConstraint(lambda r_0, r_2:
+                      r_0['b'] + 0.2 == r_2['b'],
+                      ['r_0', 'r_2'])
+problem.addConstraint(lambda r_5:
+                      r_5['a'] <= r_5['b'],
+                      ['r_5'])
+
 start = time.time()
 solutions = problem.getSolutions()
 finish = time.time()

@@ -1,4 +1,23 @@
 # -*- coding: utf-8 -*-
+
+"""
+
+КОМПАНОВКА
+r_1: {a: 1, b: 2, belong: [3]}
+r_2: {a: 1, b: 2, belong: [3]}
+r_3: {a: 1, b: 2, belong: [1, 2]}
+
+  1 2 3 4
+1 n y y y
+2 n n y y
+3 n y n y
+4 y n y n
+
+из матрицы генерировать аврианты типа:
+        [[1,2,3,4], [1,2,4], [1,2,4,3]]
+это путь движения из комнат через двери
+
+"""
 import csv
 
 import matplotlib.pyplot as plt
@@ -8,7 +27,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 
 # The PDF document
-pdf_pages = PdfPages('flat1_variants.pdf')
+pdf_pages = PdfPages('flat3_variants.pdf')
 
 with open('rooms_a_b.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile)
