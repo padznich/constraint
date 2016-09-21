@@ -6,17 +6,17 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 
 graph = {
-    'a': ['b', 'c', 'd', 'e', 'f'],
-    'b': ['d'],
-    'c': [],
+    'a': ['b', 'c'],
+    'b': ['d', 'c'],
+    'c': ['e'],
     'd': [],
-    'e': ['c'],
-    'f': ['d', 'c']
+    'e': ['f', 'd'],
+    'f': ['d']
 }
 
 rooms = {
     'a': [8, 8],
-    'b': [4, 8],
+    'b': [4, 4],
     'c': [12, 1],
     'd': [1, 2],
     'e': [1, 1],
@@ -176,7 +176,6 @@ def draw(position, draw_func_list, path):
         count += 1
 
     return position
-# routes = find_routes(graph, 'a')
 
 
 def is_intersect(r1, r2):
@@ -339,7 +338,9 @@ def main(start="a"):
     # The PDF document
     pdf_pages = PdfPages('variants.pdf')
 
+    '''
     d_main = {}
+    d_try = {}
     for _ in range(len(graph[start])):
 
         fig = plt.figure(figsize=(30, 30), dpi=100)
@@ -351,12 +352,60 @@ def main(start="a"):
         d_try = copy.deepcopy(d_main)
 
         surround_me_s(graph[start], d_try, start)
-        graph['a'].append(graph['a'].pop(0))
+        graph['a'].append(graph['a'].pop(0))    # move room from the first position on the last
 
-        plt.show()
+        pdf_pages.savefig(fig)
+        print '+', d_try
+    '''
+    d_main = {}
+    fig = plt.figure(figsize=(30, 30), dpi=100)
+    size = 30
+    plt.axis([-size, size, -size, size])
 
+    # Very first node
+    d_main['{}'.format(start)] = draw_x_pos_up(rooms[start]) + ['s']
+    d_try = copy.deepcopy(d_main)
 
-    return d_try
+    def go_inside_graph(r=start, graph=graph):
+
+        l = []
+        for room in graph[r]:
+
+            for sub_rooms in graph[room]:
+
+                l.append(surround_me_s(sub_rooms, d_try, room))
+        return l
+
+    for k, v in surround_me_s(graph[start], d_try, start).items():
+        # print '+ DEBUG: ', go_inside_graph(k)
+        l = go_inside_graph(k)
+        d_main[k] = v
+    for k in l[0]:
+        # print '#', k, l[0][k]
+        d_main[k] = l[0][k]
+
+    pdf_pages.savefig(fig)
+    pdf_pages.close()
+
+    return d_main
+
+d = main()
+routes = find_routes(graph, 'a')
+print routes
+
+for route in routes:
+
+    count = 0
+    previous_room = None
+    out = True
+    for room in route:
+        if not count:
+            count += 1
+            previous_room = room
+            continue
+        if not is_intersect(d[previous_room], d[room]):
+            out = False
+    print route, out
 
 
 # print "DEBUG: The Graph is:"
