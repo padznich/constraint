@@ -684,31 +684,55 @@ d = controller({}, 'a', [])
 print d
 
 
+
+
 import matplotlib.patches as patches
 
-fig5 = plt.figure()
-ax5 = fig5.add_subplot(111, aspect='equal')
-for p in [
-    patches.Rectangle(
-        (0.03, 0.1), 0.2, 0.6,
-        alpha=None,
-    ),
-    patches.Rectangle(
-        (0.26, 0.1), 0.2, 0.6,
-        alpha=1.0
-    ),
-    patches.Rectangle(
-        (0.49, 0.1), 0.2, 0.6,
-        alpha=0.6
-    ),
-    patches.Rectangle(
-        (0.72, 0.1), 0.2, 0.6,
-        alpha=0.1
-    ),
-]:
-    size = 1
-    plt.axis([-size, size, -size, size])
-    ax5.add_patch(p)
+
+pdf_pages = PdfPages('variants.pdf')
+for collection in d:
+
+    pack = []
+    for room in collection.values():
+        print "+", room
+        pack.append(patches.Rectangle(
+            (room[0][0], room[0][1]), room[1][0] - room[0][0], room[2][1] - room[1][1],
+            alpha=0.4,
+        ))
+
+    fig5 = plt.figure()
+    ax5 = fig5.add_subplot(111, aspect='equal')
+    for p in pack:
+        print "##", p
+        size = 20
+        plt.axis([-size, size, -size, size])
+        ax5.add_patch(p)
+    pdf_pages.savefig(fig5)
+pdf_pages.close()
+    # plt.show()
+
+
+# for p in [
+#     patches.Rectangle(
+#         (0.03, 0.1), 0.2, 0.6,
+#         alpha=None,
+#     ),
+#     patches.Rectangle(
+#         (0.26, 0.1), 0.2, 0.6,
+#         alpha=1.0
+#     ),
+#     patches.Rectangle(
+#         (0.49, 0.1), 0.2, 0.6,
+#         alpha=0.6
+#     ),
+#     patches.Rectangle(
+#         (0.72, 0.1), 0.2, 0.6,
+#         alpha=0.1
+#     ),
+# ]:
+#     size = 1
+#     plt.axis([-size, size, -size, size])
+#     ax5.add_patch(p)
 # fig5.savefig('rect5.png', dpi=90, bbox_inches='tight')
 # plt.show()
 
