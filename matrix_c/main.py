@@ -516,28 +516,43 @@ def find_routes(graph, start, path=[], paths=[]):
 def order_graph_row(graph=graph):
     '''
     Combine rooms
+    Didn't compleate!!
     '''
     done = []
     for k, row in graph.items():
 
         for room in row:
 
+            count = 0
+            rooms_list = []
+
+            sub_room = None
             for sub_room in graph[room]:
 
                 if sub_room in row:
 
-                    if sub_room not in done:
-                        if graph[k].index(room) == 0:
-                            graph[k].insert(0, graph[k].pop(graph[k].index(sub_room)))
-                        else:
-                            graph[k].insert(graph[k].index(room) - 1, graph[k].pop(graph[k].index(sub_room)))
-                    else:
-                        if graph[k].index(sub_room) == 0:
-                            graph[k].insert(0, graph[k].pop(graph[k].index(room)))
-                        else:
-                            graph[k].insert(graph[k].index(sub_room) - 1, graph[k].pop(graph[k].index(room)))
+                    count += 1
+                    rooms_list.append(sub_room)
 
-                    done.append(sub_room)
+            if sub_room in done:
+                continue
+            if count == 1:
+                if graph[k].index(room) == 0:
+                    graph[k].insert(1, graph[k].pop(graph[k].index(rooms_list[0])))
+                else:
+                    graph[k].insert(graph[k].index(room) + 1, graph[k].pop(graph[k].index(rooms_list[0])))
+            elif count == 2:
+                if graph[k].index(room) == 0:
+                    graph[k].insert(0, graph[k].pop(graph[k].index(rooms_list[0])))
+                    graph[k].insert(2, graph[k].pop(graph[k].index(rooms_list[1])))
+                else:
+                    graph[k].insert(graph[k].index(rooms_list[0]) - 1, graph[k].pop(graph[k].index(room)))
+                    graph[k].insert(graph[k].index(rooms_list[1]) + 1, graph[k].pop(graph[k].index(room)))
+            elif count > 2:
+                print "ERROR\tOrder graph row Impossible."
+                return False
+
+            done.append(sub_room)
 
 
 def is_intersect(r1, r2):
@@ -566,7 +581,7 @@ def is_overlapped(room, rooms_dict):
     return out
 
 
-def check_rote(route, rooms_dict):
+def check_route(route, rooms_dict):
     '''
     If adjacent rooms in the sequence of the route from the rooms_dict have an intersection than returns True,
     if not - False
@@ -586,6 +601,7 @@ def check_rote(route, rooms_dict):
 
 
 def go_inside_graph(possible_rooms_dict, start, graph=graph):
+
     l = []
     for room in graph[start]:
 
@@ -594,6 +610,107 @@ def go_inside_graph(possible_rooms_dict, start, graph=graph):
 
     return l
 
+
+out = []
+route = []
+routes = find_routes(graph, 'a')
+
+
+def controller(built_dict, start, out, graph=graph):
+
+    # print "DEBUG", graph
+    order_graph_row()
+    # print "DEBUG", graph
+    pdf_pages = PdfPages('variants.pdf')
+
+    own_routes = []
+    count = 0
+    for _route in routes:
+        own_routes.append([])
+        for r in _route:
+            if r in graph[start]:
+                own_routes[count].append(r)
+        count += 1
+
+    if not out:
+        for _ in graph[start]:
+            fig = plt.figure(figsize=(30, 30), dpi=100)
+            size = 30
+            plt.axis([-size, size, -size, size])
+            built_dict[start] = draw_x_pos_up(rooms['a']) + ['s']
+
+            b = copy.deepcopy(built_dict)
+
+            b = surround_me_s(graph[start], b, start)
+
+            graph[start].append(graph[start].pop(0))  # move room from the first position on the last
+
+            for route in own_routes:
+                if check_route(route, b) and b.values() not in [x.values() for x in out]:
+                    out.append(b)
+            pdf_pages.savefig(fig)
+
+    else:
+        for i_rooms in graph[start]:
+            for i_room in i_rooms:
+                # if graph[i_room]:
+
+                for i_built_dict in out:
+                    fig = plt.figure(figsize=(30, 30), dpi=100)
+                    size = 30
+                    plt.axis([-size, size, -size, size])
+
+                    b = copy.deepcopy(i_built_dict)
+
+                    for sub_i_room in graph[i_room]:
+                        if sub_i_room not in i_built_dict.keys():
+
+                            b = surround_me_s(graph[i_room], b, i_room)
+
+                            graph[start].append(graph[start].pop(0))  # move room from the first position on the last
+
+                            for route in own_routes:
+
+                                if check_route(route, b) and b.values() not in [x.values() for x in out]:
+                                    out.append(b)
+                                pdf_pages.savefig(fig)
+        pdf_pages.close()
+        return out
+
+    return controller(built_dict, start, out)
+
+d = controller({}, 'a', [])
+
+print d
+
+
+import matplotlib.patches as patches
+
+fig5 = plt.figure()
+ax5 = fig5.add_subplot(111, aspect='equal')
+for p in [
+    patches.Rectangle(
+        (0.03, 0.1), 0.2, 0.6,
+        alpha=None,
+    ),
+    patches.Rectangle(
+        (0.26, 0.1), 0.2, 0.6,
+        alpha=1.0
+    ),
+    patches.Rectangle(
+        (0.49, 0.1), 0.2, 0.6,
+        alpha=0.6
+    ),
+    patches.Rectangle(
+        (0.72, 0.1), 0.2, 0.6,
+        alpha=0.1
+    ),
+]:
+    size = 1
+    plt.axis([-size, size, -size, size])
+    ax5.add_patch(p)
+# fig5.savefig('rect5.png', dpi=90, bbox_inches='tight')
+# plt.show()
 
 #
 # Start Point
@@ -656,14 +773,10 @@ def main(start="a"):
 #   Testing
 #
 
-fig = plt.figure(figsize=(30, 30), dpi=100)
-size = 30
-plt.axis([-size, size, -size, size])
-d = main()
 # routes = find_routes(graph, 'a')
 # print routes
 # for route in routes:
-#     print check_rote(route, d)
+#     print check_route(route, d)
 
 
 # print "DEBUG: The Graph is:"
