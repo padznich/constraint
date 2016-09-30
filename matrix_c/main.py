@@ -8,7 +8,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patches as patches
 
 graph = {
-    'a': ['b', 'c'],
+    'a': ['b', 'c', 'e'],
     'b': ['d', 'f'],
     'c': [],
     'd': [],
@@ -237,7 +237,8 @@ def surround_me_n(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][2][1] > main_room[2][1]:
-            return False
+            pass
+            # return False
 
     return built_dict
 
@@ -315,7 +316,8 @@ def surround_me_e(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][2][0] > main_room[1][0]:
-            return False
+            pass
+            # return False
 
     return built_dict
 
@@ -411,7 +413,8 @@ def surround_me_s(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][0][1] < main_room[0][1]:
-            return False
+            pass
+            # return False
 
     return built_dict
 
@@ -487,7 +490,8 @@ def surround_me_w(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][0][0] < main_room[0][0]:
-            return False
+            pass
+            # return False
 
     return built_dict
 
@@ -578,29 +582,21 @@ def is_intersect(r1, r2):
                 r1[0][0] > r2[2][0])
 
 
-def is_overlapped(room, rooms_dict):
+def is_overlapped(rooms_dict):
     '''
-    :param room: Current room coordinates. For all 4 vertexes.
     :param rooms_dict: All built rooms in coordinates.
     :return: True / False. Depends on if at least one vertex of the room belongs to built rooms
     '''
     internal_d = copy.deepcopy(rooms_dict)
     out = False
-    for dot in room:
 
-        # for bi in out:
-        #     for k, item in bi.items():
-        #         _b = {k: bi.pop(k)}
-        #         if is_overlapped(item, bi):
-        #             b[_b.keys()[0]] = _b.values()[0]
-        #             out.pop(b)
-        #         b[_b.keys()[0]] = _b.values()[0]
-
-        for k, s_dot in rooms_dict.items():
-            _b = {k: internal_d.pop(k)}
-            if (s_dot[0][0] < dot[0] < s_dot[2][0]) and (s_dot[0][1] < dot[1] < s_dot[2][1]):
-                out = True
-            internal_d[_b.keys()[0]] = _b.values()[0]
+    for k, dots in rooms_dict.items():
+        _b = {k: internal_d.pop(k)}
+        for s_dot in internal_d.values():
+            for dot in dots:
+                if (s_dot[0][0] < dot[0] < s_dot[2][0]) and (s_dot[0][1] < dot[1] < s_dot[2][1]):
+                    out = True
+        internal_d[_b.keys()[0]] = _b.values()[0]
 
     return out
 
@@ -643,7 +639,7 @@ routes = find_routes(graph, 'a')
 def controller(built_dict, start, out, graph=graph):
 
     # print "DEBUG", graph
-    order_graph_row()
+    order_graph_row(graph)
     # print "DEBUG", graph
     # pdf_pages = PdfPages('variants.pdf')
 
@@ -655,7 +651,6 @@ def controller(built_dict, start, out, graph=graph):
             if r in graph[start]:
                 own_routes[count].append(r)
         count += 1
-
     if not out:
         for _ in graph[start]:
             # fig = plt.figure(figsize=(30, 30), dpi=100)
@@ -663,15 +658,12 @@ def controller(built_dict, start, out, graph=graph):
             # plt.axis([-size, size, -size, size])
             built_dict[start] = draw_x_pos_up(rooms['a']) + ['s']
 
-            b = copy.deepcopy(built_dict)
-
-            b = surround_me_s(graph[start], b, start)
-
-            graph[start].append(graph[start].pop(0))  # move room from the first position on the last
+            bbb = copy.deepcopy(built_dict)
+            bbb = surround_me_s(graph[start], bbb, start)
 
             for route in own_routes:
-                if check_route(route, b) and b.values() not in [x.values() for x in out]:
-                    out.append(b)
+                if check_route(route, bbb) and bbb.values() not in [x.values() for x in out]:
+                    out.append(bbb)
             # pdf_pages.savefig(fig)
 
     else:
@@ -683,21 +675,28 @@ def controller(built_dict, start, out, graph=graph):
                     # size = 10
                     # plt.axis([-size, size, -size, size])
 
-                    b = copy.deepcopy(i_built_dict)
+                    bbb = copy.deepcopy(i_built_dict)
+
 
                     for sub_i_room in graph[i_room]:
                         if sub_i_room not in i_built_dict.keys():
 
-                            b = surround_me_s(graph[i_room], b, i_room)
+                            # if graph[sub_i_room]:
+                            #     graph[sub_i_room].append(graph[sub_i_room].pop(0))  # move room from the first position on the last
+
+                            bbb = surround_me_s(graph[i_room], bbb, i_room)
 
                             graph[start].append(graph[start].pop(0))  # move room from the first position on the last
 
+                            if is_overlapped(bbb):
+                                if out:
+                                    out.pop()
+                                continue
+
                             for route in own_routes:
 
-                                if check_route(route, b) and b.values() not in [x.values() for x in out]:
-                                    # print "DEBUG\t", b
-                                    if is_overlapped(sub_i_room, i_built_dict):
-                                        out.append(b)
+                                if check_route(route, bbb) and bbb.values() not in [x.values() for x in out]:
+                                    out.append(bbb)
                                 # pdf_pages.savefig(fig)
         # pdf_pages.close()
         return [x for x in out if len(x) == max([len(xx) for xx in out])]
@@ -707,11 +706,11 @@ def controller(built_dict, start, out, graph=graph):
 with open('rooms_a_b.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile)
 
-    pdf_pages = PdfPages('variants.pdf')
+    pdf_pages = PdfPages('variants1.pdf')
 
     count = 0
     for row in reader:
-        d = None
+        dd = None
         if count == 0:
             count += 1
             continue
@@ -729,7 +728,22 @@ with open('rooms_a_b.csv', 'rb') as csvfile:
                 'd': d,
                 'f': f,
             }
+            graph = {
+                'a': ['b', 'c'],
+                'b': ['d', 'f'],
+                'c': [],
+                'd': [],
+                'f': [],
+            }
         else:
+            graph = {
+                'a': ['b', 'c', 'e'],
+                'b': ['d', 'f'],
+                'c': [],
+                'd': [],
+                'e': [],
+                'f': [],
+            }
             rooms = {
                 'a': a,
                 'b': b,
@@ -738,9 +752,9 @@ with open('rooms_a_b.csv', 'rb') as csvfile:
                 'e': e,
                 'f': f,
             }
-        d = controller({}, 'a', [])
+        dd = controller({}, 'a', [], graph)
 
-        for collection in d:
+        for collection in dd:
 
             pack = {}
             for name, room in collection.items():
@@ -776,7 +790,7 @@ with open('rooms_a_b.csv', 'rb') as csvfile:
                             fontsize=6, ha='center', va='center')
                 # ax.add_patch(p)
             pdf_pages.savefig(fig)
-        if count == 25:
+        if count == 5000:
             break
         count += 1
     pdf_pages.close()
