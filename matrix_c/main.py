@@ -1,28 +1,42 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import csv
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-
+import matplotlib.patches as patches
 
 graph = {
-    'a': ['b', 'c', 'd', 'e'],
-    'b': ['d', 'c'],
-    'c': ['e'],
+    'a': ['b', 'c'],
+    'b': ['d', 'f'],
+    'c': [],
     'd': [],
-    'e': ['f'],
-    'f': []
+    'e': [],
+    'f': [],
 }
+'''
+r_0_a,r_0_b,
+r_1_a,r_1_b,
+r_2_a,r_2_b,
+r_3_a,r_3_b,
+r_4_a,r_4_b,
+r_5_a,r_5_b
 
+3.3,4.3,
+3.0,1.5,
+3.5,4.5,
+2.4,1.4,
+1.7,1.2,
+0,0
+'''
 rooms = {
-    'a': [8, 8],
-    'b': [4, 2],
-    'c': [1, 5],
-    'd': [6, 1],
-    'e': [2, 1],
-    'f': [5, 5],
+    'a': [2.4, 1.4],
+    'b': [1.7, 1.2],
+    'c': [3.5, 4.5],
+    'd': [3.0, 1.5],
+    'f': [3.3, 4.3],
 }
-
 
 #
 #   Start point
@@ -39,9 +53,9 @@ pos = [[0, 0], [0, 0], [0, 0], [0, 0]]
 def draw_x_pos_up(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in upstream direction '''
 
-    plt.plot([position[1][0], position[1][0] + room[0], position[1][0] + room[0], position[1][0], position[1][0]],
-             [position[1][1], position[1][1], position[1][1] + room[1], position[1][1] + room[1], position[1][1]],
-             color='red')
+    # plt.plot([position[1][0], position[1][0] + room[0], position[1][0] + room[0], position[1][0], position[1][0]],
+    #          [position[1][1], position[1][1], position[1][1] + room[1], position[1][1] + room[1], position[1][1]],
+    #          color='red')
     position = [[position[1][0], position[1][1]],
                 [position[1][0] + room[0], position[1][1]],
                 [position[1][0] + room[0], position[1][1] + room[1]],
@@ -53,9 +67,9 @@ def draw_x_pos_up(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_x_pos_down(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in downstream direction '''
 
-    plt.plot([position[2][0], position[2][0] + room[0], position[2][0] + room[0], position[2][0], position[2][0]],
-             [position[2][1], position[2][1], position[2][1] - room[1], position[2][1] - room[1], position[2][1]],
-             color='red')
+    # plt.plot([position[2][0], position[2][0] + room[0], position[2][0] + room[0], position[2][0], position[2][0]],
+    #          [position[2][1], position[2][1], position[2][1] - room[1], position[2][1] - room[1], position[2][1]],
+    #          color='red')
     position = [[position[2][0], position[2][1] - room[1]],
                 [position[2][0] + room[0], position[2][1] - room[1]],
                 [position[2][0] + room[0], position[2][1]],
@@ -67,9 +81,9 @@ def draw_x_pos_down(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_x_neg_up(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in upstream direction '''
 
-    plt.plot([position[0][0], position[0][0] - room[0], position[0][0] - room[0], position[0][0], position[0][0]],
-             [position[0][1], position[0][1], position[0][1] + room[1], position[0][1] + room[1], position[0][1]],
-             color='blue')
+    # plt.plot([position[0][0], position[0][0] - room[0], position[0][0] - room[0], position[0][0], position[0][0]],
+    #          [position[0][1], position[0][1], position[0][1] + room[1], position[0][1] + room[1], position[0][1]],
+    #          color='blue')
     position = [[position[0][0] - room[0], position[0][1]],
                 [position[0][0], position[0][1]],
                 [position[0][0], position[0][1] + room[1]],
@@ -81,9 +95,9 @@ def draw_x_neg_up(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_x_neg_down(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in downstream direction '''
 
-    plt.plot([position[3][0], position[3][0] - room[0], position[3][0] - room[0], position[3][0], position[3][0]],
-             [position[3][1], position[3][1], position[3][1] - room[1], position[3][1] - room[1], position[3][1]],
-             color='blue')
+    # plt.plot([position[3][0], position[3][0] - room[0], position[3][0] - room[0], position[3][0], position[3][0]],
+    #          [position[3][1], position[3][1], position[3][1] - room[1], position[3][1] - room[1], position[3][1]],
+    #          color='blue')
     position = [[position[3][0] - room[0], position[3][1] - room[1]],
                 [position[3][0], position[3][1] - room[1]],
                 [position[3][0], position[3][1]],
@@ -95,9 +109,9 @@ def draw_x_neg_down(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_y_pos_fw(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in forward direction '''
 
-    plt.plot([position[3][0], position[3][0] + room[0], position[3][0] + room[0], position[3][0], position[3][0]],
-             [position[3][1], position[3][1], position[3][1] + room[1], position[3][1] + room[1], position[3][1]],
-             color='green')
+    # plt.plot([position[3][0], position[3][0] + room[0], position[3][0] + room[0], position[3][0], position[3][0]],
+    #          [position[3][1], position[3][1], position[3][1] + room[1], position[3][1] + room[1], position[3][1]],
+    #          color='green')
     position = [[position[3][0], position[3][1]],
                 [position[3][0] + room[0], position[3][1]],
                 [position[3][0] + room[0], position[3][1] + room[1]],
@@ -109,9 +123,9 @@ def draw_y_pos_fw(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_y_pos_rv(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in reverse direction '''
 
-    plt.plot([position[2][0], position[2][0] - room[0], position[2][0] - room[0], position[2][0], position[2][0]],
-             [position[2][1], position[2][1], position[2][1] + room[1], position[2][1] + room[1], position[2][1]],
-             color='green')
+    # plt.plot([position[2][0], position[2][0] - room[0], position[2][0] - room[0], position[2][0], position[2][0]],
+    #          [position[2][1], position[2][1], position[2][1] + room[1], position[2][1] + room[1], position[2][1]],
+    #          color='green')
     position = [[position[2][0] - room[0], position[2][1]],
                 [position[2][0], position[2][1]],
                 [position[2][0], position[2][1] + room[1]],
@@ -123,9 +137,9 @@ def draw_y_pos_rv(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_y_neg_fw(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in forward direction '''
 
-    plt.plot([position[0][0], position[0][0] + room[0], position[0][0] + room[0], position[0][0], position[0][0]],
-             [position[0][1], position[0][1], position[0][1] - room[1], position[0][1] - room[1], position[0][1]],
-             color='pink')
+    # plt.plot([position[0][0], position[0][0] + room[0], position[0][0] + room[0], position[0][0], position[0][0]],
+    #          [position[0][1], position[0][1], position[0][1] - room[1], position[0][1] - room[1], position[0][1]],
+    #          color='pink')
     position = [[position[0][0], position[0][1] - room[1]],
                 [position[0][0] + room[0], position[0][1]],
                 [position[0][0] + room[0], position[0][1] - room[1]],
@@ -137,9 +151,9 @@ def draw_y_neg_fw(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 def draw_y_neg_rv(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
     ''' Append placement in reverse direction '''
 
-    plt.plot([position[1][0], position[1][0] - room[0], position[1][0] - room[0], position[1][0], position[1][0]],
-             [position[1][1], position[1][1], position[1][1] - room[1], position[1][1] - room[1], position[1][1]],
-             color='pink')
+    # plt.plot([position[1][0], position[1][0] - room[0], position[1][0] - room[0], position[1][0], position[1][0]],
+    #          [position[1][1], position[1][1], position[1][1] - room[1], position[1][1] - room[1], position[1][1]],
+    #          color='pink')
     position = [[position[1][0] - room[0], position[1][1] - room[1]],
                 [position[1][0], position[1][1] - room[1]],
                 [position[1][0], position[1][1]],
@@ -570,13 +584,23 @@ def is_overlapped(room, rooms_dict):
     :param rooms_dict: All built rooms in coordinates.
     :return: True / False. Depends on if at least one vertex of the room belongs to built rooms
     '''
-
+    internal_d = copy.deepcopy(rooms_dict)
     out = False
     for dot in room:
-    
-        for s_dot in rooms_dict.values():
+
+        # for bi in out:
+        #     for k, item in bi.items():
+        #         _b = {k: bi.pop(k)}
+        #         if is_overlapped(item, bi):
+        #             b[_b.keys()[0]] = _b.values()[0]
+        #             out.pop(b)
+        #         b[_b.keys()[0]] = _b.values()[0]
+
+        for k, s_dot in rooms_dict.items():
+            _b = {k: internal_d.pop(k)}
             if (s_dot[0][0] < dot[0] < s_dot[2][0]) and (s_dot[0][1] < dot[1] < s_dot[2][1]):
                 out = True
+            internal_d[_b.keys()[0]] = _b.values()[0]
 
     return out
 
@@ -621,7 +645,7 @@ def controller(built_dict, start, out, graph=graph):
     # print "DEBUG", graph
     order_graph_row()
     # print "DEBUG", graph
-    pdf_pages = PdfPages('variants.pdf')
+    # pdf_pages = PdfPages('variants.pdf')
 
     own_routes = []
     count = 0
@@ -634,9 +658,9 @@ def controller(built_dict, start, out, graph=graph):
 
     if not out:
         for _ in graph[start]:
-            fig = plt.figure(figsize=(30, 30), dpi=100)
-            size = 30
-            plt.axis([-size, size, -size, size])
+            # fig = plt.figure(figsize=(30, 30), dpi=100)
+            # size = 30
+            # plt.axis([-size, size, -size, size])
             built_dict[start] = draw_x_pos_up(rooms['a']) + ['s']
 
             b = copy.deepcopy(built_dict)
@@ -648,17 +672,16 @@ def controller(built_dict, start, out, graph=graph):
             for route in own_routes:
                 if check_route(route, b) and b.values() not in [x.values() for x in out]:
                     out.append(b)
-            pdf_pages.savefig(fig)
+            # pdf_pages.savefig(fig)
 
     else:
         for i_rooms in graph[start]:
             for i_room in i_rooms:
-                # if graph[i_room]:
 
                 for i_built_dict in out:
-                    fig = plt.figure(figsize=(30, 30), dpi=100)
-                    size = 30
-                    plt.axis([-size, size, -size, size])
+                    # fig = plt.figure(figsize=(30, 30), dpi=100)
+                    # size = 10
+                    # plt.axis([-size, size, -size, size])
 
                     b = copy.deepcopy(i_built_dict)
 
@@ -672,69 +695,92 @@ def controller(built_dict, start, out, graph=graph):
                             for route in own_routes:
 
                                 if check_route(route, b) and b.values() not in [x.values() for x in out]:
-                                    out.append(b)
-                                pdf_pages.savefig(fig)
-        pdf_pages.close()
-        return out
+                                    # print "DEBUG\t", b
+                                    if is_overlapped(sub_i_room, i_built_dict):
+                                        out.append(b)
+                                # pdf_pages.savefig(fig)
+        # pdf_pages.close()
+        return [x for x in out if len(x) == max([len(xx) for xx in out])]
 
     return controller(built_dict, start, out)
 
-d = controller({}, 'a', [])
+with open('rooms_a_b.csv', 'rb') as csvfile:
+    reader = csv.reader(csvfile)
 
-print d
+    pdf_pages = PdfPages('variants.pdf')
 
+    count = 0
+    for row in reader:
+        d = None
+        if count == 0:
+            count += 1
+            continue
+        a = [float(row[6]), float(row[7])]
+        b = [float(row[8]), float(row[9])]
+        c = [float(row[4]), float(row[5])]
+        d = [float(row[2]), float(row[3])]
+        e = [float(row[10]), float(row[11])]
+        f = [float(row[0]), float(row[1])]
+        if not e[0]:
+            rooms = {
+                'a': a,
+                'b': b,
+                'c': c,
+                'd': d,
+                'f': f,
+            }
+        else:
+            rooms = {
+                'a': a,
+                'b': b,
+                'c': c,
+                'd': d,
+                'e': e,
+                'f': f,
+            }
+        d = controller({}, 'a', [])
 
+        for collection in d:
 
+            pack = {}
+            for name, room in collection.items():
+                # print "+", room
+                pack[name] = patches.Rectangle(
+                    (room[0][0], room[0][1]), room[1][0] - room[0][0], room[2][1] - room[1][1],
+                    alpha=0.4,)
 
-import matplotlib.patches as patches
+            fig = plt.figure()
+            ax = fig.add_subplot(111, aspect='equal')
+            for p in pack:
 
+                size = 10
+                plt.axis([-size, size, -size, size])
 
-pdf_pages = PdfPages('variants.pdf')
-for collection in d:
+                ax.add_artist(pack[p])
+                rx, ry = pack[p].get_xy()
+                cx = rx + pack[p].get_width()/2.0
+                cy = ry + pack[p].get_height()/2.0
+                if p == 'a':
+                    p = 'Enter room'
+                if p == 'b':
+                    p = 'Corridor'
+                if p == 'c':
+                    p = 'Living room'
+                if p == 'd':
+                    p = 'Bathroom'
+                if p == 'e':
+                    p = 'Wardrobe'
+                if p == 'f':
+                    p = 'Kitchen'
+                ax.annotate(p, (cx, cy), color='w', weight='bold',
+                            fontsize=6, ha='center', va='center')
+                # ax.add_patch(p)
+            pdf_pages.savefig(fig)
+        if count == 25:
+            break
+        count += 1
+    pdf_pages.close()
 
-    pack = []
-    for room in collection.values():
-        print "+", room
-        pack.append(patches.Rectangle(
-            (room[0][0], room[0][1]), room[1][0] - room[0][0], room[2][1] - room[1][1],
-            alpha=0.4,
-        ))
-
-    fig5 = plt.figure()
-    ax5 = fig5.add_subplot(111, aspect='equal')
-    for p in pack:
-        print "##", p
-        size = 20
-        plt.axis([-size, size, -size, size])
-        ax5.add_patch(p)
-    pdf_pages.savefig(fig5)
-pdf_pages.close()
-    # plt.show()
-
-
-# for p in [
-#     patches.Rectangle(
-#         (0.03, 0.1), 0.2, 0.6,
-#         alpha=None,
-#     ),
-#     patches.Rectangle(
-#         (0.26, 0.1), 0.2, 0.6,
-#         alpha=1.0
-#     ),
-#     patches.Rectangle(
-#         (0.49, 0.1), 0.2, 0.6,
-#         alpha=0.6
-#     ),
-#     patches.Rectangle(
-#         (0.72, 0.1), 0.2, 0.6,
-#         alpha=0.1
-#     ),
-# ]:
-#     size = 1
-#     plt.axis([-size, size, -size, size])
-#     ax5.add_patch(p)
-# fig5.savefig('rect5.png', dpi=90, bbox_inches='tight')
-# plt.show()
 
 #
 # Start Point
