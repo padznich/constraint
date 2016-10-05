@@ -8,34 +8,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.patches as patches
 
 graph = {
-    'a': ['b', 'c', 'e'],
-    'b': ['d', 'f'],
+    'a': ['b', 'c', 'd'],
+    'b': [],
     'c': [],
     'd': [],
-    'e': [],
-    'f': [],
-}
-'''
-r_0_a,r_0_b,
-r_1_a,r_1_b,
-r_2_a,r_2_b,
-r_3_a,r_3_b,
-r_4_a,r_4_b,
-r_5_a,r_5_b
-
-3.3,4.3,
-3.0,1.5,
-3.5,4.5,
-2.4,1.4,
-1.7,1.2,
-0,0
-'''
-rooms = {
-    'a': [2.4, 1.4],
-    'b': [1.7, 1.2],
-    'c': [3.5, 4.5],
-    'd': [3.0, 1.5],
-    'f': [3.3, 4.3],
 }
 
 #
@@ -166,7 +142,7 @@ def draw_y_neg_rv(room, position=[[0, 0], [0, 0], [0, 0], [0, 0]]):
 #   Surround allocating functions
 #
 
-def surround_me_n(neighbors_list, built_dict, previous_room):
+def surround_me_n(neighbors_list, built_dict, previous_room, rooms):
     '''
     Allocates adjacent rooms. Form North.
     Fill around Previous Room by the Neighbours.
@@ -237,13 +213,12 @@ def surround_me_n(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][2][1] > main_room[2][1]:
-            pass
-            # return False
+            pass #return False
 
     return built_dict
 
 
-def surround_me_e(neighbors_list, built_dict, previous_room):
+def surround_me_e(neighbors_list, built_dict, previous_room, rooms):
     '''
     Allocates adjacent rooms. Form East.
     Fill around Previous Room by the Neighbours.
@@ -316,13 +291,12 @@ def surround_me_e(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][2][0] > main_room[1][0]:
-            pass
-            # return False
+            pass #return False
 
     return built_dict
 
 
-def surround_me_s(neighbors_list, built_dict, previous_room):
+def surround_me_s(neighbors_list, built_dict, previous_room, rooms):
     '''
     Allocates adjacent rooms. Form South.
     Fill around Previous Room by the Neighbours.
@@ -413,13 +387,12 @@ def surround_me_s(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][0][1] < main_room[0][1]:
-            pass
-            # return False
+            pass #return False
 
     return built_dict
 
 
-def surround_me_w(neighbors_list, built_dict, previous_room):
+def surround_me_w(neighbors_list, built_dict, previous_room, rooms):
     '''
     Allocates adjacent rooms. Form West.
     Fill around Previous Room by the Neighbours.
@@ -490,8 +463,7 @@ def surround_me_w(neighbors_list, built_dict, previous_room):
         count += 1
 
         if built_dict[previous_room][0][0] < main_room[0][0]:
-            pass
-            # return False
+            pass #return False
 
     return built_dict
 
@@ -582,21 +554,29 @@ def is_intersect(r1, r2):
                 r1[0][0] > r2[2][0])
 
 
-def is_overlapped(rooms_dict):
+def is_overlapped(room, rooms_dict):
     '''
+    :param room: Current room coordinates. For all 4 vertexes.
     :param rooms_dict: All built rooms in coordinates.
     :return: True / False. Depends on if at least one vertex of the room belongs to built rooms
     '''
     internal_d = copy.deepcopy(rooms_dict)
     out = False
+    for dot in room:
 
-    for k, dots in rooms_dict.items():
-        _b = {k: internal_d.pop(k)}
-        for s_dot in internal_d.values():
-            for dot in dots:
-                if (s_dot[0][0] < dot[0] < s_dot[2][0]) and (s_dot[0][1] < dot[1] < s_dot[2][1]):
-                    out = True
-        internal_d[_b.keys()[0]] = _b.values()[0]
+        # for bi in out:
+        #     for k, item in bi.items():
+        #         _b = {k: bi.pop(k)}
+        #         if is_overlapped(item, bi):
+        #             b[_b.keys()[0]] = _b.values()[0]
+        #             out.pop(b)
+        #         b[_b.keys()[0]] = _b.values()[0]
+
+        for k, s_dot in rooms_dict.items():
+            _b = {k: internal_d.pop(k)}
+            if (s_dot[0][0] < dot[0] < s_dot[2][0]) and (s_dot[0][1] < dot[1] < s_dot[2][1]):
+                out = True
+            internal_d[_b.keys()[0]] = _b.values()[0]
 
     return out
 
@@ -620,13 +600,13 @@ def check_route(route, rooms_dict):
     return all(out)
 
 
-def go_inside_graph(possible_rooms_dict, start, graph=graph):
+def go_inside_graph(possible_rooms_dict, start, rooms, graph=graph):
 
     l = []
     for room in graph[start]:
 
         for sub_rooms in graph[room]:
-            l.append(surround_me_w(sub_rooms, possible_rooms_dict, room))
+            l.append(surround_me_w(sub_rooms, possible_rooms_dict, room, rooms))
 
     return l
 
@@ -636,10 +616,10 @@ route = []
 routes = find_routes(graph, 'a')
 
 
-def controller(built_dict, start, out, graph=graph):
+def controller(built_dict, start, out, rooms, graph=graph):
 
     # print "DEBUG", graph
-    order_graph_row(graph)
+    order_graph_row()
     # print "DEBUG", graph
     # pdf_pages = PdfPages('variants.pdf')
 
@@ -651,6 +631,7 @@ def controller(built_dict, start, out, graph=graph):
             if r in graph[start]:
                 own_routes[count].append(r)
         count += 1
+
     if not out:
         for _ in graph[start]:
             # fig = plt.figure(figsize=(30, 30), dpi=100)
@@ -658,12 +639,15 @@ def controller(built_dict, start, out, graph=graph):
             # plt.axis([-size, size, -size, size])
             built_dict[start] = draw_x_pos_up(rooms['a']) + ['s']
 
-            bbb = copy.deepcopy(built_dict)
-            bbb = surround_me_s(graph[start], bbb, start)
+            bb = copy.deepcopy(built_dict)
+
+            bb = surround_me_s(graph[start], bb, start, rooms)
+
+            graph[start].append(graph[start].pop(0))  # move room from the first position on the last
 
             for route in own_routes:
-                if check_route(route, bbb) and bbb.values() not in [x.values() for x in out]:
-                    out.append(bbb)
+                if check_route(route, bb) and bb.values() not in [x.values() for x in out]:
+                    out.append(bb)
             # pdf_pages.savefig(fig)
 
     else:
@@ -675,205 +659,131 @@ def controller(built_dict, start, out, graph=graph):
                     # size = 10
                     # plt.axis([-size, size, -size, size])
 
-                    bbb = copy.deepcopy(i_built_dict)
-
+                    bb = copy.deepcopy(i_built_dict)
 
                     for sub_i_room in graph[i_room]:
                         if sub_i_room not in i_built_dict.keys():
 
-                            # if graph[sub_i_room]:
-                            #     graph[sub_i_room].append(graph[sub_i_room].pop(0))  # move room from the first position on the last
-
-                            bbb = surround_me_s(graph[i_room], bbb, i_room)
+                            bb = surround_me_s(graph[i_room], bb, i_room, rooms)
 
                             graph[start].append(graph[start].pop(0))  # move room from the first position on the last
 
-                            if is_overlapped(bbb):
-                                if out:
-                                    out.pop()
-                                continue
-
                             for route in own_routes:
 
-                                if check_route(route, bbb) and bbb.values() not in [x.values() for x in out]:
-                                    out.append(bbb)
+                                if check_route(route, bb) and bb.values() not in [x.values() for x in out]:
+                                    # print "DEBUG\t", b
+                                    if is_overlapped(sub_i_room, i_built_dict):
+                                        out.append(bb)
                                 # pdf_pages.savefig(fig)
         # pdf_pages.close()
         return [x for x in out if len(x) == max([len(xx) for xx in out])]
 
-    return controller(built_dict, start, out)
+    return controller(built_dict, start, out, rooms)
 
-with open('rooms_a_b.csv', 'rb') as csvfile:
-    reader = csv.reader(csvfile)
 
-    pdf_pages = PdfPages('variants1.pdf')
+def main1():
 
-    count = 0
-    for row in reader:
-        dd = None
-        if count == 0:
+    with open('variants.csv', 'wb') as csvfile:
+        fieldnames = ['Enter room', 'Hall', 'Bathroom', 'Kitchen']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+    with open('rooms_a_b.csv', 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+
+        count = 0
+        for row in reader:
+            dd = None
+            if count == 0:
+                count += 1
+                continue
+            a = [float(row[0]), float(row[1])]
+            b = [float(row[2]), float(row[3])]
+            c = [float(row[4]), float(row[5])]
+            d = [float(row[6]), float(row[7])]
+            rooms = {
+                'a': a,
+                'b': b,
+                'c': c,
+                'd': d,
+            }
+            dd = controller({}, 'a', [], rooms)
+
+            with open('variants.csv', 'ab+') as csvfile:
+                fieldnames = ['Enter room', 'Hall', 'Bathroom', 'Kitchen']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+                for collection in dd:
+                    out = {}
+                    for k, v in collection.items():
+                        if k == 'a':
+                            out['Enter room'] = v[:-1]
+                        if k == 'b':
+                            out['Hall'] = v[:-1]
+                        if k == 'c':
+                            out['Bathroom'] = v[:-1]
+                        if k == 'd':
+                            out['Kitchen'] = v[:-1]
+                    writer.writerow(out)
+
+
+def main():
+    with open('rooms_a_b.csv', 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+
+        pdf_pages = PdfPages('variants.pdf')
+
+        count = 0
+        for row in reader:
+            dd = None
+            if count == 0:
+                count += 1
+                continue
+            a = [float(row[0]), float(row[1])]
+            b = [float(row[2]), float(row[3])]
+            c = [float(row[4]), float(row[5])]
+            d = [float(row[6]), float(row[7])]
+            rooms = {
+                'a': a,
+                'b': b,
+                'c': c,
+                'd': d,
+            }
+            dd = controller({}, 'a', [], rooms)
+
+            for collection in dd:
+
+                pack = {}
+                for name, room in collection.items():
+                    # print "+", room
+                    pack[name] = patches.Rectangle(
+                        (room[0][0], room[0][1]), room[1][0] - room[0][0], room[2][1] - room[1][1],
+                        alpha=0.4,)
+
+                fig = plt.figure()
+                ax = fig.add_subplot(111, aspect='equal')
+                for p in pack:
+
+                    size = 10
+                    plt.axis([-size / 1.5, size, -size / 3, size])
+
+                    ax.add_artist(pack[p])
+                    rx, ry = pack[p].get_xy()
+                    cx = rx + pack[p].get_width()/2.0
+                    cy = ry + pack[p].get_height()/2.0
+                    if p == 'a':
+                        p = 'Enter room'
+                    if p == 'b':
+                        p = 'Hall'
+                    if p == 'c':
+                        p = 'Bathroom'
+                    if p == 'd':
+                        p = 'Kitchen'
+                    ax.annotate(p, (cx, cy), color='w', weight='bold',
+                                fontsize=6, ha='center', va='center')
+                    # ax.add_patch(p)
+                pdf_pages.savefig(fig)
+            if count == 250:
+                break
             count += 1
-            continue
-        a = [float(row[6]), float(row[7])]
-        b = [float(row[8]), float(row[9])]
-        c = [float(row[4]), float(row[5])]
-        d = [float(row[2]), float(row[3])]
-        e = [float(row[10]), float(row[11])]
-        f = [float(row[0]), float(row[1])]
-        if not e[0]:
-            rooms = {
-                'a': a,
-                'b': b,
-                'c': c,
-                'd': d,
-                'f': f,
-            }
-            graph = {
-                'a': ['b', 'c'],
-                'b': ['d', 'f'],
-                'c': [],
-                'd': [],
-                'f': [],
-            }
-        else:
-            graph = {
-                'a': ['b', 'c', 'e'],
-                'b': ['d', 'f'],
-                'c': [],
-                'd': [],
-                'e': [],
-                'f': [],
-            }
-            rooms = {
-                'a': a,
-                'b': b,
-                'c': c,
-                'd': d,
-                'e': e,
-                'f': f,
-            }
-        dd = controller({}, 'a', [], graph)
-
-        for collection in dd:
-
-            pack = {}
-            for name, room in collection.items():
-                # print "+", room
-                pack[name] = patches.Rectangle(
-                    (room[0][0], room[0][1]), room[1][0] - room[0][0], room[2][1] - room[1][1],
-                    alpha=0.4,)
-
-            fig = plt.figure()
-            ax = fig.add_subplot(111, aspect='equal')
-            for p in pack:
-
-                size = 10
-                plt.axis([-size, size, -size, size])
-
-                ax.add_artist(pack[p])
-                rx, ry = pack[p].get_xy()
-                cx = rx + pack[p].get_width()/2.0
-                cy = ry + pack[p].get_height()/2.0
-                if p == 'a':
-                    p = 'Enter room'
-                if p == 'b':
-                    p = 'Corridor'
-                if p == 'c':
-                    p = 'Living room'
-                if p == 'd':
-                    p = 'Bathroom'
-                if p == 'e':
-                    p = 'Wardrobe'
-                if p == 'f':
-                    p = 'Kitchen'
-                ax.annotate(p, (cx, cy), color='w', weight='bold',
-                            fontsize=6, ha='center', va='center')
-                # ax.add_patch(p)
-            pdf_pages.savefig(fig)
-        if count == 500:
-            break
-        count += 1
-    pdf_pages.close()
-
-
-#
-# Start Point
-#
-def main(start="a"):
-
-    order_graph_row()
-
-    # The PDF document
-    pdf_pages = PdfPages('variants.pdf')
-
-    '''
-    d_main = {}
-    d_try = {}
-    for _ in range(len(graph[start])):
-
-        fig = plt.figure(figsize=(30, 30), dpi=100)
-        size = 30
-        plt.axis([-size, size, -size, size])
-
-        # Very first node
-        d_main['{}'.format(start)] = draw_x_pos_up(rooms[start]) + ['s']
-        d_try = copy.deepcopy(d_main)
-
-        surround_me_s(graph[start], d_try, start)
-        graph['a'].append(graph['a'].pop(0))    # move room from the first position on the last
-
-        pdf_pages.savefig(fig)
-        print '+', d_try
-    '''
-    d_main = {}
-    fig = plt.figure(figsize=(30, 30), dpi=100)
-    size = 30
-    plt.axis([-size, size, -size, size])
-
-    # Very first node
-    d_main['{}'.format(start)] = draw_x_pos_up(rooms[start]) + ['s']
-    d_try = copy.deepcopy(d_main)
-
-    for k, v in surround_me_w(graph[start], d_try, start).items():
-        l = go_inside_graph(d_try, k)
-        d_main[k] = v
-        # print "~\t\t", d_main
-    # print "++", l
-
-    if l:
-        for k in l[0]:
-            # print '#', k, l[0][k]
-            d_main[k] = l[0][k]
-        # print "--", d_main
-
-    pdf_pages.savefig(fig)
-
-    pdf_pages.close()
-
-    return d_main
-
-
-#
-#   Testing
-#
-
-# routes = find_routes(graph, 'a')
-# print routes
-# for route in routes:
-#     print check_route(route, d)
-
-
-# print "DEBUG: The Graph is:"
-# for k, v in graph.items():
-#     print k, v
-# print '_' * 100
-
-
-# Functions Lists for sides directions
-'''
-W = [draw_x_neg_down, draw_x_neg_up]
-N = [draw_y_pos_rv, draw_y_pos_fw]
-E = [draw_x_pos_down, draw_x_pos_up]
-S = [draw_y_neg_fw, draw_y_neg_rv]
-DRAW_LIST = [W, N, E, S]
-'''
+        pdf_pages.close()
